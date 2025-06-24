@@ -2,9 +2,9 @@ terraform {
   required_version = ">= 1.0"
   
   backend "s3" {
-    bucket = "your-terraform-state-bucket"  # Replace with your S3 bucket name
+    bucket = "s3_state_bucket" 
     key    = "lambda-setup/terraform.tfstate"
-    region = "us-east-1"  # Replace with your region
+    region = "us-east-2"  
   }
   
   required_providers {

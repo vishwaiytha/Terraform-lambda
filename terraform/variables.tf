@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region"
   type        = string
-  default     = "us-east-1"
+  default     = "us-east-2"
 }
 
 variable "environment" {
@@ -11,7 +11,7 @@ variable "environment" {
 }
 
 variable "lambda_name" {
-  description = "Project name"
+  description = "lambda name"
   type        = string
   default     = "calculator_lambda"
 }

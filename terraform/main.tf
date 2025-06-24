@@ -98,13 +98,12 @@ resource "aws_iam_role_policy" "lambda_policy" {
 }
 # Lambda Function
 resource "aws_lambda_function" "main_function" {
-  filename         = lambda.js
+  filename         = "lambda/lambda.js"
   function_name    = "${var.lambda_name}-function-${var.environment}"
-  role            = aws_iam_role.lambda_role.arn
-  handler         = "index.handler"
-  runtime         = "nodejs18.x"
-  timeout         = 30
-  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+  role             =  aws_iam_role.lambda_role.arn
+  handler          = "lambda.handler"
+  runtime          = "nodejs18.x"
+  timeout          = 30
 
   environment {
     variables = {
@@ -117,10 +116,4 @@ resource "aws_lambda_function" "main_function" {
     Name        = "${var.lambda_name}-function-${var.environment}"
     Environment = var.environment
   }
-}
-
-# CloudWatch Log Group
-resource "aws_cloudwatch_log_group" "lambda_logs" {
-  name              = "/aws/lambda/${aws_lambda_function.main_function.function_name}"
-  retention_in_days = 14
 }
