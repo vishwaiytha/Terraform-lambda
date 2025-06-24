@@ -7,6 +7,39 @@ resource "aws_s3_bucket" "app_data" {
   bucket = "${var.lambda_name}-app-data-${var.environment}"
 }
 
+# Create ZIP file from source code
+data "archive_file" "lambda_zip" {
+  type        = "zip"
+  source_file = "lambda/lambda.js"  # or wherever your source file is
+  output_path = "lambda.zip"
+}
+
+
+
+# Lambda Function
+resource "aws_lambda_function" "main_function" {
+  filename         = data.archive_file.lambda_zip.output_path
+  function_name    = "${var.lambda_name}-function-${var.environment}"
+  role             =  aws_iam_role.lambda_role.arn
+  handler          = "lambda.handler"
+  runtime          = "nodejs18.x"
+  timeout          = 30
+  source_code_hash = data.archive_file.lambda_zip.output_base64sha256
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.main_table.name
+      S3_BUCKET  = aws_s3_bucket.app_data.bucket
+    }
+  }
+
+
+  tags = {
+    Name        = "${var.lambda_name}-function-${var.environment}"
+    Environment = var.environment
+  }
+}
+
 # DynamoDB Table
 resource "aws_dynamodb_table" "main_table" {
   name           = "${var.lambda_name}-table-${var.environment}"
@@ -15,7 +48,7 @@ resource "aws_dynamodb_table" "main_table" {
 
   attribute {
     name = "id"
-    type = "S"
+    type = "S" 
   }
 
   tags = {
@@ -95,25 +128,4 @@ resource "aws_iam_role_policy" "lambda_policy" {
       }
     ]
   })
-}
-# Lambda Function
-resource "aws_lambda_function" "main_function" {
-  filename         = "lambda/lambda.js"
-  function_name    = "${var.lambda_name}-function-${var.environment}"
-  role             =  aws_iam_role.lambda_role.arn
-  handler          = "lambda.handler"
-  runtime          = "nodejs18.x"
-  timeout          = 30
-
-  environment {
-    variables = {
-      TABLE_NAME = aws_dynamodb_table.main_table.name
-      S3_BUCKET  = aws_s3_bucket.app_data.bucket
-    }
-  }
-
-  tags = {
-    Name        = "${var.lambda_name}-function-${var.environment}"
-    Environment = var.environment
-  }
 }
